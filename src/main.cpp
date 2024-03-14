@@ -26,6 +26,17 @@ int count = 0;
 
 int BodyTemp;
 
+const int trigPin = 5;
+const int echoPin = 18;
+
+// define sound speed in cm/uS
+#define SOUND_SPEED 0.034
+#define CM_TO_INCH 0.393701
+
+long duration;
+float distanceCm;
+float distanceInch;
+
 int turbidity = map(sensorValue, 0, 750, 100, 0);
 
 #define ONE_WIRE_BUS 4
@@ -129,25 +140,6 @@ void turbidtyValue()
   Serial.print("turbidity");
   Serial.print(turbidity);
   delay(100);
-
-  // Add labels based on turbidity value
-  // if (turbidity <= 5)
-  // {
-  //   Blynk.setProperty(V5, "label", "Drinking Water Turbidity: <= 5 NTU");
-  //   Blynk.setProperty(V5, "labelColor", "#2ecc71"); // Green color for drinking water
-  // }
-  // else if (turbidity <= 1)
-  // {
-  //   Blynk.setProperty(V5, "label", "Pharmaceutical and Medicinal Turbidity: <= 1 NTU");
-  //   Blynk.setProperty(V5, "labelColor", "#3498db"); // Blue color for pharmaceutical and medicinal
-  // }
-  // else if (turbidity < 5)
-  // {
-  //   Blynk.setProperty(V5, "label", "Industry (Paper Manufacturing) Turbidity: < 5 NTU");
-  //   Blynk.setProperty(V5, "labelColor", "#e74c3c"); // Red color for industry
-  // }
-
-  // updateLabels(phValue, turbidity, BodyTemp);
 }
 
 void PH_Value()
@@ -183,25 +175,6 @@ void PH_Value()
   Blynk.virtualWrite(V0, phValue);
   Serial.print("phValue");
   Serial.print(phValue);
-
-  // // Add labels based on pH value
-  // if (phValue >= 6.5 && phValue <= 8.5)
-  // {
-  //   Blynk.setProperty(V3, "label", "Drinking Water pH: 6.5-8.5");
-  //   Blynk.setProperty(V3, "labelColor", "#2ecc71"); // Green color for drinking water
-  // }
-  // else if (phValue >= 5 && phValue <= 7)
-  // {
-  //   Blynk.setProperty(V3, "label", "Pharmaceutical and Medicinal pH: 5-7");
-  //   Blynk.setProperty(V3, "labelColor", "#3498db"); // Blue color for pharmaceutical and medicinal
-  // }
-  // else if (phValue >= 7 && phValue <= 9)
-  // {
-  //   Blynk.setProperty(V3, "label", "Industry (Paper Manufacturing) pH: 7-9");
-  //   Blynk.setProperty(V3, "labelColor", "#e74c3c"); // Red color for industry
-  // }
-
-  // updateLabels(phValue, turbidity, BodyTemp);
 }
 
 void TempSensor()
@@ -217,28 +190,14 @@ void TempSensor()
   Blynk.virtualWrite(V1, BodyTemp);
   Serial.print(BodyTemp);
   delay(500);
-
-  // if ((BodyTemp >= 10 && BodyTemp <= 15.6) || (BodyTemp >= 50 && BodyTemp <= 60))
-  // {
-  //   Blynk.setProperty(V4, "label", "Drinking Water Temperature: 10-15.6°C or 50-60°F");
-  //   Blynk.setProperty(V4, "labelColor", "#2ecc71"); // Green color for drinking water
-  // }
-  // else if (BodyTemp >= 20 && BodyTemp <= 25)
-  // {
-  //   Blynk.setProperty(V4, "label", "Pharmaceutical and Medicinal Temperature: 20-25°C");
-  //   Blynk.setProperty(V4, "labelColor", "#3498db"); // Blue color for pharmaceutical and medicinal
-  // }
-  // else if (BodyTemp >= 10 && BodyTemp <= 35)
-  // {
-  //   Blynk.setProperty(V4, "label", "Industry (Paper Manufacturing) Temperature: 10-35°C");
-  //   Blynk.setProperty(V4, "labelColor", "#e74c3c"); // Red color for industry
-  // }
 }
 
 void setup()
 {
   // Debug console
   Serial.begin(115200);
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
 
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   // You can also specify server:
@@ -259,4 +218,30 @@ void loop()
   timer.run();
 
   updateLabels(phValue, turbidity, BodyTemp);
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+
+  // Calculate the distance
+  distanceCm = duration * SOUND_SPEED / 2;
+
+  Blynk.virtualWrite(V1, distanceCm); // Use V1 as a display widget in your Blynk app
+
+  // Convert to inches
+  // distanceInch = distanceCm * CM_TO_INCH;
+
+  // Prints the distance in the Serial Monitor
+  Serial.print("Distance (cm): ");
+  Serial.println(distanceCm);
+  // Serial.print("Distance (inch): ");
+  // Serial.println(distanceInch);
+
+  delay(1000);
 }
