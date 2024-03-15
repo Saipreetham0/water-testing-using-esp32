@@ -18,6 +18,15 @@
 char ssid[] = "KSP";
 char pass[] = "9550421866";
 
+//
+
+#define POWER_PIN 17  // ESP32 pin GPIO17 connected to sensor's VCC pin
+#define SIGNAL_PIN 36 // ESP32 pin GPIO36 (ADC0) connected to sensor's signal pin
+
+int waterValue = 0; // variable to store the sensor value
+
+//
+
 int sensorValue;
 int value;
 long Stime = 0;
@@ -252,6 +261,20 @@ void WaterFloat()
   }
 }
 
+void waterLevel()
+{
+  digitalWrite(POWER_PIN, HIGH);  // turn the sensor ON
+  delay(10);                      // wait 10 milliseconds
+  value = analogRead(SIGNAL_PIN); // read the analog value from sensor
+  digitalWrite(POWER_PIN, LOW);   // turn the sensor OFF
+
+  Serial.print("The water sensor value: ");
+  Serial.println(value);
+  Blynk.virtualWrite(V8, value); // Use V1 as a display widget in your Blynk app
+
+  delay(1000);
+}
+
 void setup()
 {
   // Debug console
@@ -274,6 +297,9 @@ void setup()
   totalMilliLitres = 0;
   previousMillis = 0;
 
+  pinMode(POWER_PIN, OUTPUT);   // configure pin as an OUTPUT
+  digitalWrite(POWER_PIN, LOW); // turn the sensor OFF
+
   attachInterrupt(digitalPinToInterrupt(SENSOR), pulseCounter, FALLING);
   // timer.setInterval(1000L, TempSensor);
   timer.setInterval(1000L, TempSensor);
@@ -287,6 +313,9 @@ void loop()
   timer.run();
 
   updateLabels(phValue, turbidity, BodyTemp);
+
+  waterLevel();
+  WaterFloat();
 
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
