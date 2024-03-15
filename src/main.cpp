@@ -119,16 +119,19 @@ void updateLabels(int phValue, int turbidity, int bodyTemp)
   {
     turbidityLabel = "Turbidity: <= 5 NTU";
     turbidityColor = "#2ecc71"; // Green color for drinking water
+    Blynk.logEvent("safe_to_drink");
   }
   else if (turbidity <= 1)
   {
     turbidityLabel = "Turbidity: <= 1 NTU";
     turbidityColor = "#3498db"; // Blue color for pharmaceutical and medicinal
+    Blynk.logEvent("pharmaceutical_and_medicinal");
   }
   else if (turbidity < 5)
   {
     turbidityLabel = "Turbidity: < 5 NTU";
     turbidityColor = "#e74c3c"; // Red color for industry
+     Blynk.logEvent("industry");
   }
 
   // Conditions for temperature
